@@ -1,0 +1,42 @@
+<DOC> <DOC>+BDTag
+<TITLE> <TITLE>+BTTag
+<S> <S>+BSTag
+Refah Refah+Noun+Prop+A3sg+Pnon+Nom refah+Noun+A3sg+Pnon+Nom
+da da+Conj
+Türkçe Türkçe+Noun+Prop+A3sg+Pnon+Nom türkçe+Adj türk+Noun+A3sg+Pnon+Equ türk+Adj^DB+Adverb+Ly türk+Adj^DB+Adj+AsIf
+için için+Postp+PCNom iç+Noun+A3sg+P2sg+Nom iç+Noun+A3sg+Pnon+Gen iç+Verb+Pos+Imp+A2pl
+görüş görüş+Noun+A3sg+Pnon+Nom gör+Verb+Recip+Pos+Imp+A2sg gör+Verb+Pos^DB+Noun+Inf3+A3sg+Pnon+Nom görüş+Verb+Pos+Imp+A2sg
+istedi iste+Verb+Pos+Past+A3sg
+. .+Punc
+</S> </S>+ESTag
+</TITLE> </TITLE>+ETTag
+<S> <S>+BSTag
+Öztürkçe Öztürkçe+Noun+Prop+A3sg+Pnon+Nom
+çalışmalarıyla çalış+Verb+Pos^DB+Noun+Inf2+A3pl+P3sg+Ins çalış+Verb+Pos^DB+Noun+Inf2+A3pl+P3pl+Ins çalış+Verb+Pos^DB+Noun+Inf2+A3sg+P3pl+Ins
+tanınan tanı+Verb^DB+Verb+Pass+Pos^DB+Adj+PresPart
+Prof. profesör+Noun+A3sg+Pnon+Nom
+Dr. doktor+Noun+A3sg+Pnon+Nom
+Oktay Oktay+Noun+Prop+A3sg+Pnon+Nom
+Sinanoğlu Sinanoğlu+Noun+Prop+A3sg+Pnon+Nom sinanoğ+Noun+A3sg+Pnon+Nom^DB+Adj+With sinanoğ+Noun+A3sg+Pnon+Nom^DB+Adj+With^DB+Noun+Zero+A3sg+Pnon+Nom sinanoğl+Noun+A3sg+Pnon+Acc sinanoğl+Noun+A3sg+P3sg+Nom sinanoğlu+Noun+A3sg+Pnon+Nom
+, ,+Punc
+" "+Punc
+Sömürge sömürge+Noun+A3sg+Pnon+Nom
+ruhuna ruh+Noun+A3sg+P3sg+Dat ruh+Noun+A3sg+P2sg+Dat
+itilmemiş it+Verb^DB+Verb+Pass+Neg+Narr+A3sg it+Verb^DB+Verb+Pass+Neg+Narr^DB+Adj+Zero
+her her+Det
+ülkenin ülke+Noun+A3sg+Pnon+Gen ülke+Noun+A3sg+P2sg+Gen
+eğitim eğitim+Noun+A3sg+Pnon+Nom
+dili dil+Noun+A3sg+P3sg+Nom dil+Noun+A3sg+Pnon+Acc
+, ,+Punc
+resmi resmi+Adj resim+Noun+A3sg+P3sg+Nom resim+Noun+A3sg+Pnon+Acc
+dilidir dil+Noun+A3sg+P3sg+Nom^DB+Verb+Zero+Pres+Cop+A3sg
+" "+Punc
+dedi de+Verb+Pos+Past+A3sg
+. .+Punc
+</S> </S>+ESTag
+<S> <S>+BSTag
+Önay Önay+Noun+Prop+A3sg+Pnon+Nom
+YILMAZ Yılmaz+Noun+Prop+A3sg+Pnon+Nom yıl+Verb+Neg+Aor+A3sg yıl+Verb+Neg+Aor^DB+Adj+Zero yılmaz+Adj
+- -+Punc
+İSTANBUL İstanbul+Noun+Prop+A3sg+Pnon+Nom
+</S> </S>+ESTag
