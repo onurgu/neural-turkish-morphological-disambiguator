@@ -162,6 +162,8 @@ def encode_sentence(sentence, label2ids):
         for j, c in enumerate(surface_form):
             surface_form_input[i, j] = label2ids["character"][c]
 
+    # TODO: randomize the order of the analyses.
+
     # print sentences_word_root_input
     return sentences_word_root_input, sentences_analysis_input, surface_form_input, correct_tags_input
 
