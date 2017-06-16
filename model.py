@@ -195,10 +195,11 @@ def build_model(params=Params()):
 
     print "p", p
 
-    predicted_tags = K.max(p, axis=2)
+    predicted_tags = Lambda(lambda x: K.max(x, axis=2), output_shape=lambda s: s)(p)
 
     model = Model(inputs=[sentences_word_root_input, sentences_analysis_input, surface_form_input],
                   outputs=[p])
+
     return model
 
 if __name__ == "__main__":
