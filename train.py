@@ -17,15 +17,19 @@ parser.add_argument("--model_path")
 args = parser.parse_args()
 
 
-def sample_generator(sentences, label2ids, batch_size=32):
+def sample_generator(sentences, label2ids, batch_size=32, return_sentence=False):
     while True:
         n_in_batch = 0
         batch = [[], []]
+        decoded_sentences_in_batch = []
         shuffled_indices = np.random.permutation(len(sentences))
         for sentence_i in shuffled_indices:
             sentence = sentences[sentence_i]
             sentences_word_root_input, sentences_analysis_input, surface_form_input, correct_tags_input = \
                 encode_sentence(sentence, label2ids)
+
+            if return_sentence:
+                decoded_sentences_in_batch.append(sentence)
 
             input_array = []
             for array in [sentences_word_root_input, sentences_analysis_input, surface_form_input,
@@ -45,15 +49,25 @@ def sample_generator(sentences, label2ids, batch_size=32):
                 #     for i in range(1):
                 #         print i
                 #         print b[i].shape
-                yield [np.concatenate([b[i] for b in batch[0]], axis=0) for i in range(3)], \
-                      [np.concatenate([b[0] for b in batch[1]], axis=0)]
+                encoded_sentences_in_batch = ([np.concatenate([b[i] for b in batch[0]], axis=0) for i in range(3)], \
+                          [np.concatenate([b[0] for b in batch[1]], axis=0)])
+                if not return_sentence:
+                    yield encoded_sentences_in_batch
+                else:
+                    yield encoded_sentences_in_batch, decoded_sentences_in_batch
                 # yield batch[0], batch[1]
                 n_in_batch = 0
                 batch = [[], []]
+
         if n_in_batch > 0:
-            yield [np.concatenate([b[i] for b in batch[0]], axis=0) for i in
+            encoded_sentences_in_batch = ([np.concatenate([b[i] for b in batch[0]], axis=0) for i in
                    range(3)], \
-                  [np.concatenate([b[0] for b in batch[1]], axis=0)]
+                  [np.concatenate([b[0] for b in batch[1]], axis=0)])
+            if not return_sentence:
+                yield encoded_sentences_in_batch
+            else:
+                yield encoded_sentences_in_batch, decoded_sentences_in_batch
+
 
             # yield (input_array[:-1], input_array[-1])
 
@@ -64,7 +78,10 @@ params = Params()
 
 params.max_sentence_length = label2ids['max_sentence_length']
 params.max_n_analyses = label2ids['max_n_analysis']
+
 params.batch_size = 1
+params.n_subepochs = 40
+
 params.max_surface_form_length = label2ids['max_surface_form_length']
 params.max_word_root_length = label2ids['max_word_root_length']
 params.max_analysis_length = label2ids['max_analysis_length']
@@ -72,11 +89,11 @@ params.max_analysis_length = label2ids['max_analysis_length']
 params.char_vocabulary_size = label2ids['character_unique_count']['value']
 params.tag_vocabulary_size = label2ids['morph_token_unique_count']['value']
 
-params.char_lstm_dim = 5
-params.char_embedding_dim = 5
+params.char_lstm_dim = 100
+params.char_embedding_dim = 100
 
 params.tag_lstm_dim = params.char_lstm_dim
-params.tag_embedding_dim = 5
+params.tag_embedding_dim = 100
 
 params.sentence_level_lstm_dim = 2 * params.char_lstm_dim
 
@@ -93,7 +110,7 @@ if args.command == "train":
     from keras.callbacks import ModelCheckpoint, TensorBoard, ReduceLROnPlateau
 
     checkpointer = ModelCheckpoint(filepath="./models/ntd-{run_name}".format(run_name=args.run_name)
-                                            + '.epoch-{epoch:02d}-val_acc-{val_acc:.2f}.hdf5',
+                                            + '.epoch-{epoch:02d}-val_acc-{val_acc:.5f}.hdf5',
                                    verbose=1,
                                    monitor="val_acc",
                                    save_best_only=True)
@@ -114,8 +131,8 @@ if args.command == "train":
                                   cooldown=1,
                                   min_lr=0)
     model.fit_generator(sample_generator(train_and_test_sentences[0], label2ids, batch_size=params.batch_size),
-                        steps_per_epoch=len(train_and_test_sentences[0])/params.batch_size,
-                        epochs=10,
+                        steps_per_epoch=len(train_and_test_sentences[0])/params.batch_size/params.n_subepochs,
+                        epochs=10*params.n_subepochs,
                         validation_data=sample_generator(train_and_test_sentences[1], label2ids, batch_size=params.batch_size),
                         validation_steps=len(train_and_test_sentences[1])/params.batch_size+1,
                         callbacks=[checkpointer, tensorboard_callback, reduce_lr])
@@ -136,13 +153,51 @@ elif args.command == "predict":
 
     model.load_weights(args.model_path)
 
-    for sample in sample_generator(train_and_test_sentences[1], label2ids, batch_size=params.batch_size):
-        print sample
-        pred_probs = model.predict(sample[0], batch_size=params.batch_size, verbose=1)
-        print pred_probs
-        print pred_probs.shape
-        print np.argmax(pred_probs, axis=2)
-        print sample[1][0]
-        print sample[1][0].shape
-        print np.argmax(sample[1][0], axis=2)
-        sys.exit()
+    total_correct = 0
+    total_tokens = 0
+
+    for batch_idx, (sample_batch, decoded_sample_batch) in enumerate(sample_generator(train_and_test_sentences[1],
+                                                               label2ids,
+                                                               batch_size=params.batch_size,
+                                                               return_sentence=True)):
+        # print sample
+        # pred_probs = model.predict(sample_batch[0], batch_size=params.batch_size, verbose=1)
+        # print pred_probs
+        # print pred_probs.shape
+        # print np.argmax(pred_probs, axis=2)
+        # print sample_batch[1][0]
+        # print sample_batch[1][0].shape
+        # print np.argmax(sample_batch[1][0], axis=2)
+        # print decoded_sample_batch
+
+
+        correct_tags = np.argmax(sample_batch[1][0], axis=2)
+        pred_probs = model.predict(sample_batch[0], batch_size=params.batch_size, verbose=1)
+        pred_tags = np.argmax(pred_probs, axis=2)
+
+        for idx, correct_tag in enumerate(correct_tags):
+
+            sentence_length = len(decoded_sample_batch[idx]['surface_form_lengths'])
+            pred_tag = pred_tags[idx]
+            # print correct_tag
+            # print correct_tag.shape
+            # print pred_tag
+            # print pred_tag.shape
+            n_correct = np.sum(correct_tag[:sentence_length] == pred_tag[:sentence_length])
+            total_correct += n_correct
+            total_tokens += sentence_length
+            # print sentence_length
+
+        if batch_idx % 100 == 0:
+            print total_correct
+            print total_tokens
+            print float(total_correct)/total_tokens
+            print "==="
+        if batch_idx*params.batch_size >= len(train_and_test_sentences[1]):
+            print "Evaluation finished"
+            print total_correct
+            print total_tokens
+            print float(total_correct)/total_tokens
+            print "==="
+            break
+
