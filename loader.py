@@ -177,21 +177,19 @@ def encode_sentence(sentence, label2ids):
         for j, c in enumerate(surface_form):
             surface_form_input[i, j] = label2ids["character"][c]
 
-    random_positions = np.random.randint(0, label2ids["max_n_analysis"], sentence_length)
+    # shuffling the input among analysis order
     for i in range(sentence_length):
-        pos = random_positions[i]
-        temp = np.copy(sentences_word_root_input[i, 0, :])
-        sentences_word_root_input[i, 0, :] = sentences_word_root_input[i, pos, :]
-        sentences_word_root_input[i, pos, :] = temp
+        shuffled_positions = np.random.permutation(label2ids["max_n_analysis"])
 
-        temp = np.copy(sentences_analysis_input[i, pos, :])
-        sentences_analysis_input[i, pos, :] = sentences_analysis_input[i, 0, :]
-        sentences_analysis_input[i, 0, :] = temp
+        temp = sentences_word_root_input[i, shuffled_positions, :]
+        sentences_word_root_input[i] = np.copy(temp)
 
-        correct_tags_input[i] = 0
-        correct_tags_input[i, pos] = 1
+        temp = sentences_analysis_input[i, shuffled_positions, :]
+        sentences_analysis_input[i] = np.copy(temp)
 
-    # print sentences_word_root_input
+        temp = correct_tags_input[i, shuffled_positions]
+        correct_tags_input[i] = np.copy(temp)
+
     return sentences_word_root_input, sentences_analysis_input, surface_form_input, correct_tags_input
 
 
