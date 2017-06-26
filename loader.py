@@ -200,7 +200,7 @@ if __name__ == "__main__":
     print sentences[0]
     print label2ids
 
-    sentences, label2ids = read_datafile("train.merge.utf8", "test.merge.utf8")
+    sentences, label2ids = read_datafile("data/train.merge.utf8", "data/test.merge.utf8")
     encode_sentence(sentences[0][0], label2ids)
     print sentences[0]
     print label2ids
