@@ -1,5 +1,6 @@
 
 import argparse
+from collections import defaultdict as dd
 import os
 
 from loader import encode_sentence, read_datafile
@@ -58,6 +59,7 @@ def sample_generator(sentences, label2ids, batch_size=32, return_sentence=False)
                 # yield batch[0], batch[1]
                 n_in_batch = 0
                 batch = [[], []]
+                decoded_sentences_in_batch = []
 
         if n_in_batch > 0:
             encoded_sentences_in_batch = ([np.concatenate([b[i] for b in batch[0]], axis=0) for i in
@@ -67,9 +69,6 @@ def sample_generator(sentences, label2ids, batch_size=32, return_sentence=False)
                 yield encoded_sentences_in_batch
             else:
                 yield encoded_sentences_in_batch, decoded_sentences_in_batch
-
-
-            # yield (input_array[:-1], input_array[-1])
 
 
 train_and_test_sentences, label2ids = read_datafile(args.train_filepath, args.test_filepath)
@@ -156,6 +155,16 @@ elif args.command == "predict":
     total_correct = 0
     total_tokens = 0
 
+    total_correct_all_structure = 0
+    total_tokens_all_structure = 0
+
+    total_correct_ambigious = 0
+    total_tokens_ambigious = 0
+
+    correct_counts = dd(int)
+    total_counts = dd(int)
+
+
     for batch_idx, (sample_batch, decoded_sample_batch) in enumerate(sample_generator(train_and_test_sentences[1],
                                                                label2ids,
                                                                batch_size=params.batch_size,
@@ -170,6 +179,7 @@ elif args.command == "predict":
         # print np.argmax(sample_batch[1][0], axis=2)
         # print decoded_sample_batch
 
+        # print "decoded_sample_batch: ", decoded_sample_batch
 
         correct_tags = np.argmax(sample_batch[1][0], axis=2)
         pred_probs = model.predict(sample_batch[0], batch_size=params.batch_size, verbose=1)
@@ -186,18 +196,68 @@ elif args.command == "predict":
             n_correct = np.sum(correct_tag[:sentence_length] == pred_tag[:sentence_length])
             total_correct += n_correct
             total_tokens += sentence_length
-            # print sentence_length
+            # print "sentence_length: ", sentence_length
+
+            # print "n_correct: ", n_correct
+            # print "sentence_length: ", sentence_length
+
+            total_correct_all_structure += n_correct + correct_tag.shape[0] - sentence_length
+            total_tokens_all_structure += correct_tag.shape[0]
+
+            baseline_log_prob = 0
+            import math
+
+            for j in range(len(decoded_sample_batch[idx]['roots'])):
+                if j >= sentence_length:
+                    break
+                n_analyses = len(decoded_sample_batch[idx]['roots'][j])
+                baseline_log_prob += math.log(1/float(n_analyses))
+                # print n_analyses
+                assert n_analyses >= 1
+                if n_analyses > 1:
+                    if correct_tag[j] == pred_tag[j]:
+                        total_correct_ambigious += 1
+                        correct_counts[n_analyses] += 1
+                    total_tokens_ambigious += 1
+                    total_counts[n_analyses] += 1
+
 
         if batch_idx % 100 == 0:
+            print "only the filled part of the sentence"
             print total_correct
             print total_tokens
             print float(total_correct)/total_tokens
+            print "all the sentence"
+            print total_correct_all_structure
+            print total_tokens_all_structure
+            print float(total_correct_all_structure)/total_tokens_all_structure
+            print "==="
+            print "ambigous"
+            print total_correct_ambigious
+            print total_tokens_ambigious
+            print float(total_correct_ambigious)/total_tokens_ambigious
+            print "==="
+            for key in correct_counts:
+                print "disambiguations out of n_analyses: %d ===> %lf" % (key, float(correct_counts[key])/total_counts[key])
             print "==="
         if batch_idx*params.batch_size >= len(train_and_test_sentences[1]):
-            print "Evaluation finished"
+            print "Evaluation finished, batch_id: %d" % batch_idx
+            print "only the filled part of the sentence"
             print total_correct
             print total_tokens
             print float(total_correct)/total_tokens
+            print "all the sentence"
+            print total_correct_all_structure
+            print total_tokens_all_structure
+            print float(total_correct_all_structure) / total_tokens_all_structure
+            print "==="
+            print "ambigous"
+            print total_correct_ambigious
+            print total_tokens_ambigious
+            print float(total_correct_ambigious)/total_tokens_ambigious
+            print "==="
+            for key in correct_counts:
+                print "disambiguations out of n_analyses: %d ===> %lf %d %d" % (key, float(correct_counts[key])/total_counts[key], correct_counts[key], total_counts[key])
             print "==="
             break
 

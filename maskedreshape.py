@@ -37,17 +37,17 @@ class MaskedReshape(Reshape):
         return result
 
     def compute_mask(self, inputs, mask=None):
-        target_shape = self.target_shape
+        # target_shape = self.target_shape
         target_mask_shape = self.target_mask_shape
-        if -1 in target_shape:
-            # target shape not fully defined
-            input_shape = None
-            try:
-                input_shape = K.int_shape(inputs)
-            except TypeError:
-                pass
-            if input_shape is not None:
-                target_shape = self.compute_output_shape(input_shape)[1:]
+        # if -1 in target_shape:
+        #     # target shape not fully defined
+        #     input_shape = None
+        #     try:
+        #         input_shape = K.int_shape(inputs)
+        #     except TypeError:
+        #         pass
+        #     if input_shape is not None:
+        #         target_shape = self.compute_output_shape(input_shape)[1:]
         return K.reshape(mask, (-1,) + target_mask_shape)
 
 if __name__ == "__main__":

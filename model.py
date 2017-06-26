@@ -18,6 +18,9 @@ class Params():
     def __init__(self):
         pass
 
+    def __getitem__(self, item):
+        return eval("Params.%s" % item)
+
     max_sentence_length = 5
     max_word_root_length = 4
     max_n_analyses = 10
@@ -103,14 +106,21 @@ def create_context_bi_lstm(input_3d, embedding_layer,
 
 def create_two_level_bi_lstm(input_4d, embedding_layer,
                              max_sentence_length, max_n_analyses, max_word_root_length,
-                             lstm_dim, embedding_dim):
+                             lstm_dim, embedding_dim,
+                             masked=True,
+                             silent=False):
     r = Reshape((max_sentence_length * max_n_analyses * max_word_root_length,))
     # input_4d = Lambda(lambda x: x, output_shape=lambda s: s)(input_4d)
     rr = r(input_4d)
     input_embeddings = embedding_layer(rr)
-    print input_embeddings
-    r = MaskedReshape((max_sentence_length * max_n_analyses, max_word_root_length, embedding_dim),
-                      (max_sentence_length * max_n_analyses, max_word_root_length))
+    if not silent:
+        print input_embeddings
+    if masked:
+        r = MaskedReshape((max_sentence_length * max_n_analyses, max_word_root_length, embedding_dim),
+                          (max_sentence_length * max_n_analyses, max_word_root_length))
+    else:
+        r = Reshape(
+            (max_sentence_length * max_n_analyses, max_word_root_length, embedding_dim))
     # input_embeddings = Lambda(lambda x: x, output_shape=lambda s: s)(input_embeddings)
     rr = r(input_embeddings)
     lstm_layer = Bidirectional(LSTM(lstm_dim,
@@ -120,11 +130,13 @@ def create_two_level_bi_lstm(input_4d, embedding_layer,
 
     lstm_layer_output = td_lstm_layer(rr)
     lstm_layer_output_relu = Activation('relu')(lstm_layer_output)
-    print "lstm_layer_output_relu", lstm_layer_output_relu
+    if not silent:
+        print "lstm_layer_output_relu", lstm_layer_output_relu
     r = Reshape((max_sentence_length, max_n_analyses, 2 * lstm_dim))
     lstm_layer_output_relu = Lambda(lambda x: x, output_shape=lambda s: s)(lstm_layer_output_relu)
     lstm_layer_output_relu_reshaped = r(lstm_layer_output_relu)
-    print "lstm_layer_output_relu_reshaped", lstm_layer_output_relu_reshaped
+    if not silent:
+        print "lstm_layer_output_relu_reshaped", lstm_layer_output_relu_reshaped
     return input_embeddings, lstm_layer_output_relu_reshaped
 
 
