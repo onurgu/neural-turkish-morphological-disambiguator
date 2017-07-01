@@ -1,7 +1,26 @@
 # neural-turkish-morphological-disambiguator
 Implementation of Shen et al.'s "The Role of Context in Neural Morphological Disambiguation"
 
-## Notes
+## Training
+
+```bash
+python train.py --command train --train_filepath data/train.merge.utf8 --test_filepath data/test.merge.utf8 --run_name nmd-20170619-06
+```
+
+
+## Prediction
+
+```bash
+python train.py --command predict --train_filepath data/train.merge.utf8 --test_filepath data/test.merge.utf8 --model_path ./models/ntd-nmd-20170619-06.epoch-32-val_acc-0.99507.hdf5 --run_name testing
+```
+
+### Disambiguating a sentence
+
+```bash
+python train.py --command disambiguate --train_filepath data/train.merge.utf8 --test_filepath data/test.merge.utf8 --model_path ./models/ntd-nmd-20170619-06.epoch-32-val_acc-0.99507.hdf5 --label2ids_path ./models/ntd-nmd-20170619-06.epoch-32-val_acc-0.99507.hdf5.label2ids --run_name testing
+```
+
+## Results
 
 ```
 Evaluation finished, batch_id: 42

@@ -8,15 +8,18 @@ from keras.utils.np_utils import to_categorical
 import sys
 
 
-def read_datafile(train_path, test_path=None, sentence_length_limit=66):
+def read_datafile(train_path, test_path=None, sentence_length_limit=66, preloaded_label2ids=None):
 
     label_classes = ['surface_form',
                      'root',
                      'morph_token',
                      'character']
-    label2ids = {label: dd(int) for label in label_classes +
-                 [label_class + "_count" for label_class in label_classes] +
-                 [label_class + "_unique_count" for label_class in label_classes]}
+    if preloaded_label2ids is None:
+        label2ids = {label: dd(int) for label in label_classes +
+                     [label_class + "_count" for label_class in label_classes] +
+                     [label_class + "_unique_count" for label_class in label_classes]}
+    else:
+        label2ids = preloaded_label2ids
 
     characters_seen = set()
 
@@ -59,6 +62,7 @@ def read_datafile(train_path, test_path=None, sentence_length_limit=66):
                 word = []
                 sentences = []
                 line = f.readline()
+                line = line.strip("\n")
                 while line:
                     tokens = line.split(" ")
                     surface_form = tokens[0].decode('utf-8')
@@ -126,18 +130,20 @@ def read_datafile(train_path, test_path=None, sentence_length_limit=66):
                         sentence.append(word)
                         word = []
                     line = f.readline()
+                    line = line.strip("\n")
                 train_and_test_sentences.append(sentences)
                 print "file processed"
 
     for c in characters_seen:
         encode_label("character", c)
 
-    for m_str, m_value in [["max_sentence_length", max_sentence_length],
-              ["max_surface_form_length", max_surface_form_length],
-              ["max_word_root_length", max_word_root_length],
-              ["max_n_analysis", max_n_analysis],
-              ["max_analysis_length", max_analysis_length]]:
-        label2ids[m_str] = m_value
+    if preloaded_label2ids is None:
+        for m_str, m_value in [["max_sentence_length", max_sentence_length],
+                  ["max_surface_form_length", max_surface_form_length],
+                  ["max_word_root_length", max_word_root_length],
+                  ["max_n_analysis", max_n_analysis],
+                  ["max_analysis_length", max_analysis_length]]:
+            label2ids[m_str] = m_value
     return train_and_test_sentences, label2ids
 
 import numpy as np
@@ -156,6 +162,8 @@ def encode_sentence(sentence, label2ids):
 
     correct_tags_input = to_categorical(np.zeros([label2ids["max_sentence_length"]], dtype=np.int32),
                                         label2ids["max_n_analysis"])
+
+    shuffled_positions_record = np.zeros([label2ids["max_sentence_length"], label2ids["max_n_analysis"]], dtype=np.int32)
 
     sentence_length = sentence['sentence_length']
     # word_roots
@@ -180,6 +188,7 @@ def encode_sentence(sentence, label2ids):
     # shuffling the input among analysis order
     for i in range(sentence_length):
         shuffled_positions = np.random.permutation(label2ids["max_n_analysis"])
+        shuffled_positions_record[i] = np.copy(shuffled_positions)
 
         temp = sentences_word_root_input[i, shuffled_positions, :]
         sentences_word_root_input[i] = np.copy(temp)
@@ -190,7 +199,7 @@ def encode_sentence(sentence, label2ids):
         temp = correct_tags_input[i, shuffled_positions]
         correct_tags_input[i] = np.copy(temp)
 
-    return sentences_word_root_input, sentences_analysis_input, surface_form_input, correct_tags_input
+    return sentences_word_root_input, sentences_analysis_input, surface_form_input, correct_tags_input, shuffled_positions_record
 
 
 
