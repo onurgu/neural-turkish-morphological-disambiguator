@@ -46,3 +46,13 @@ disambiguations out of n_analyses: 6 ===> 0.888889 8 9
 disambiguations out of n_analyses: 8 ===> 0.777778 7 9
 disambiguations out of n_analyses: 12 ===> 1.000000 1 1
 ```
+
+# Web demo
+
+```
+python webapp.py --command disambiguate --train_filepath data/train.merge.utf8 --test_filepath data/test.merge.utf8 --model_path ./models/ntd-nmd-20170619-06.epoch-32-val
+```
+
+Example screenshot:
+
+![de](./public_html/images/morphological-disambugator-web-screenshot.png)
