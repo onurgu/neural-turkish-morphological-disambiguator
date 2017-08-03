@@ -16,7 +16,7 @@ function htmlDecode(value){
   return $('<div/>').html(value).text();
 }
 
-$('#input_text').bind('input onkeyup', function() {
+$('#submit_button').bind('click', function() {
 
       // $("#yourBtnID").hide();
 
