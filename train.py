@@ -1,19 +1,17 @@
-
 import argparse
-import codecs
-from collections import defaultdict as dd
 import cPickle
+import codecs
 import os
-import subprocess
 import sys
 import tempfile
-
-from loader import encode_sentence, read_datafile
-from model import build_model, Params
+from collections import defaultdict as dd
 
 import numpy as np
 
-from nltk.tokenize import RegexpTokenizer
+from loader import encode_sentence, read_datafile
+from model import build_model, Params
+from utils import get_morph_analyzes, create_single_word_single_line_format
+
 
 def create_parser():
     parser = argparse.ArgumentParser()
@@ -120,36 +118,6 @@ def create_params(label2ids):
     return params
 
 
-def tokenize(line):
-    tokenizer = RegexpTokenizer('\w+|\$[\d\.]+|\S+')
-    return tokenizer.tokenize(line)
-
-
-import re
-
-def create_single_word_single_line_format(string_output):
-    lines = string_output.split("\n")
-    result = "<S> <S>+BSTag\n"
-    current_single_line = ""
-    subline_idx = 0
-    for line in lines:
-        if line != "":
-            tokens = line.split("\t")
-            if subline_idx == 0:
-                current_single_line += tokens[0]
-                current_single_line += " " + tokens[1] + tokens[2]
-            else:
-                current_single_line += " " + tokens[1] + tokens[2]
-            subline_idx += 1
-        else:
-            result += current_single_line + "\n"
-            subline_idx = 0
-            current_single_line = ""
-    result = result[:-1]
-    result += "</S> </S>+ESTag\n"
-    return result
-
-
 def disambiguate_single_line_sentence(line, model, label2ids, params, print_prediction_lines=True):
     """
     
@@ -160,21 +128,7 @@ def disambiguate_single_line_sentence(line, model, label2ids, params, print_pred
     :param print_prediction_lines: 
     :return: An array of strings which represent the words and disambiguated analyzes
     """
-    # print "READ: ", line
-    if type(line) == unicode:
-        tokens = tokenize(line)
-    else:
-        tokens = tokenize(line.decode("utf8"))
-    # print tokens
-    fd, f_path = tempfile.mkstemp()
-    with open(f_path, "w") as f:
-        for token in tokens:
-            f.write(token.encode("iso-8859-9") + "\n")
-    os.close(fd)
-    with codecs.open(f_path, "r", encoding="iso-8859-9") as f:
-        string_output = subprocess.check_output(["./bin/lookup", "-latin1", "-f",
-                                                 "tfeatures.scr"], stdin=f, cwd="./tools/tr-tagger")
-    # print "XXX", string_output, "YYY"
+    string_output = get_morph_analyzes(line)# print "XXX", string_output, "YYY"
     analyzer_output_string = create_single_word_single_line_format(string_output)
     # print string_output_single_line.decode("iso-8859-9")
     # print type(string_output_single_line)
@@ -324,8 +278,6 @@ if __name__ == "__main__":
         label2ids, params, train_and_test_sentences = load_label2ids_and_params(args)
 
         train_and_test_sentences, label2ids_from_input_file = read_datafile(args.train_filepath, args.test_filepath)
-
-        from keras.models import load_model
 
         from model import build_model
 
