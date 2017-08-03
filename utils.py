@@ -251,7 +251,6 @@ if __name__ == "__main__":
         from PyQt4 import QtGui
         import main_form
 
-
         class ExampleApp(QtGui.QMainWindow, main_form.Ui_MainWindow):
             def __init__(self):
                 super(self.__class__, self).__init__()

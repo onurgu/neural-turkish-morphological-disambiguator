@@ -55,4 +55,14 @@ python webapp.py --command disambiguate --train_filepath data/train.merge.utf8 -
 
 Example screenshot:
 
-![de](./public_html/images/morphological-disambugator-web-screenshot.png)
+![](./public_html/images/morphological-disambugator-web-screenshot.png)
+
+# Desktop app
+
+WIP: Implemented a very simple and ugly GUI to get morphological analyzes of a given sentence
+
+```
+python utils.py --command gui --output_dir stats_train_merge --gold_data 1 --verbose 1
+```
+
+![](./public_html/images/morphological-analyzer-desktop-screenshot.png)
