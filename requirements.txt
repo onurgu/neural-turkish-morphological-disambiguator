@@ -1,0 +1,11 @@
+h5py
+keras
+tensorflow
+numpy
+
+# optional for some functionality
+asciitree
+nltk
+tornado
+
+# also tr-tagger from Oflazer in appropriate places.
