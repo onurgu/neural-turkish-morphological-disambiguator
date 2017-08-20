@@ -1,17 +1,6 @@
-from keras.models import Model
-
-from keras.layers import LSTM, Embedding, Input, Reshape,\
-    TimeDistributed, Bidirectional, Add, Activation, Lambda, Dot, Layer
-
-from keras.utils.np_utils import to_categorical
-
-from keras import backend as K
-import tensorflow as tf
+from dynet import Model
 
 import numpy as np
-
-from maskedreshape import MaskedReshape
-
 
 class Params():
 
@@ -43,27 +32,6 @@ class Params():
     batch_size = 11
 
 params = Params()
-
-def dot_product_over_specific_axis(inputs):
-    print "INPUTS TO LAMBDA:", inputs
-    x = inputs[0]
-    # x [?, 5, 10, 14]
-    y = inputs[1]
-    # x = tf.transpose(x, [0,1,3,2])
-    # x.T [?, 5, 14, 10]
-    # y [?, 5, 14]
-    y = tf.reshape(y, tf.concat([tf.shape(y), [1]], axis=0))
-    # y [?, 5, 14, 1]
-    result = tf.matmul(x, y)
-    result = tf.squeeze(result, axis=[3])
-    return result
-
-def fabricate_calc_output_shape(max_sentence_length, max_n_analyses):
-
-    def calc_output_shape(input_shape):
-        return tuple([None, max_sentence_length, max_n_analyses])
-
-    return calc_output_shape
 
 def create_context_bi_lstm(input_3d, embedding_layer,
                              max_sentence_length, max_surface_form_length,
@@ -141,6 +109,8 @@ def create_two_level_bi_lstm(input_4d, embedding_layer,
 
 
 def build_model(params=Params()):
+
+    model = Model()
 
     sentences_word_root_input = Input(shape=(params.max_sentence_length, params.max_n_analyses, params.max_word_root_length),
                                       dtype='int32',

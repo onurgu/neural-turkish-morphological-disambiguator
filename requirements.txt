@@ -1,6 +1,5 @@
 h5py
-keras
-tensorflow
+dynet
 numpy
 
 # optional for some functionality
