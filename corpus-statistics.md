@@ -97,3 +97,31 @@ $ cat data/train.merge.utf8 | awk '/^<S>/ { sentence_count = 0; } !/^(<\/?S)|(<D
  ['+Adverb\n+Noun+A3sg+Pnon+Nom', 3520]]
 
 ```
+
+```bash
+cat data/train.merge.utf8 | awk '{ for (i=2; i <= NF; i++) { n_elems = split($i, arr, "+"); printf "%s\t%s\t", $1, arr[1]; for (j = 2; j <= n_elems; j++) { printf "+%s", arr[j]; }; printf "\n";  }; print "";}' | python utils.py --command generate_corpus_statistics --output_dir stats_with_ambiguity_scores_train_merge --gold_data 1 --verbose 0
+```
+
+
+# Tur, 2003
+
+```bash
+
+$ cat dataset/tr.train | awk '/^$/ { print sentence_length ; sentence_length = 0 } !/^$/ { sentence_length += 1 }' | sort -n | histogram.py -x 83
+# NumSamples = 32171; Min = 1.00; Max = 83.00
+# 19 values outside of min/max
+# Mean = 13.229244; Variance = 100.296178; SD = 10.014798; Median 11.000000
+# each ∎ represents a count of 186
+    1.0000 -     9.2000 [ 13994]: ∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+    9.2000 -    17.4000 [  9745]: ∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+   17.4000 -    25.6000 [  4993]: ∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎∎
+   25.6000 -    33.8000 [  2099]: ∎∎∎∎∎∎∎∎∎∎∎
+   33.8000 -    42.0000 [   901]: ∎∎∎∎
+   42.0000 -    50.2000 [   249]: ∎
+   50.2000 -    58.4000 [   103]: 
+   58.4000 -    66.6000 [    30]: 
+   66.6000 -    74.8000 [    19]: 
+   74.8000 -    83.0000 [    19]: 
+
+
+```

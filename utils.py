@@ -153,6 +153,19 @@ def count_tagsets(f, delimiter="\t", gold_analysis_in_the_first_position=False, 
 def conll2003tosingleline():
     pass
 
+from collections import Counter
+
+def char_mapping_from_file(filepath):
+    with codecs.open(filepath, "r", encoding="utf-8") as f:
+        return _chars_mapping_from_file(f)
+
+
+def _chars_mapping_from_file(f):
+    chars = Counter()
+    for line_idx, line in enumerate(f):
+        chars.update(Counter(line.decode("utf-8")))
+    return chars
+
 
 import operator
 from functools import reduce
@@ -188,10 +201,10 @@ def create_single_word_single_line_format(string_output):
     result += "</S> </S>+ESTag\n"
     return result
 
-def get_morph_analyzes(line):
+def get_morph_analyzes(line, tokenize=tokenize):
     """
 
-    :param line: 
+    :param line: a turkish sentence in free form
     :return: 
     """
     if type(line) == unicode:
@@ -202,6 +215,7 @@ def get_morph_analyzes(line):
     fd, f_path = tempfile.mkstemp()
     with open(f_path, "w") as f:
         for token in tokens:
+            # print(token.encode("iso-8859-9", errors="strict"))
             f.write(token.encode("iso-8859-9") + "\n")
     os.close(fd)
     with codecs.open(f_path, "r", encoding="iso-8859-9") as f:
@@ -224,7 +238,10 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--command", required=True, choices=["generate_corpus_statistics", "gui"])
+    parser.add_argument("--command", required=True, choices=["generate_corpus_statistics",
+                                                             "read_tur_ner_data",
+                                                             "count_chars",
+                                                             "gui"])
     parser.add_argument("--gold_data", type=bool, default=False)
     parser.add_argument("--output_dir", required=True)
     parser.add_argument("--verbose", type=bool, default=False)
@@ -246,6 +263,36 @@ if __name__ == "__main__":
             with open(os.path.join(args.output_dir, filename+".dat"), "w") as out_f:
                 pickle.dump(obj, out_f)
         f.close()
+    elif args.command == "count_chars":
+        f = sys.stdin
+
+        chars = _chars_mapping_from_file(f)
+        print("All chars")
+        print("\n".join(" ".join([char.encode("utf-8"),
+                                  char.encode("iso-8859-9", errors="replace"),
+                                  str("".join([hex(x) for x in bytearray(char.encode("utf-8"))])),
+                                  str(count)]) for char, count in chars.items()))
+        problematic_chars = []
+        for char, count in chars.items():
+            try:
+                char.encode("iso-8859-9")
+            except Exception as e:
+                problematic_chars.append(char)
+        print("Problematic chars")
+        print("\n".join(" ".join([char.encode("utf-8"),
+                                  char.encode("iso-8859-9", errors="replace"),
+                                  str("".join([hex(x) for x in bytearray(char.encode("utf-8"))])),
+                                  str(chars[char])]) for char in problematic_chars))
+
+    elif args.command == "read_tur_ner_data":
+        f = sys.stdin
+        for line in f:
+            line = line.decode("utf8").strip()
+            if line:
+                string_output = get_morph_analyzes(line, tokenize=lambda x: x.split(" "))  # print "XXX", string_output, "YYY"
+                analyzer_output_string = create_single_word_single_line_format(string_output)
+                print(analyzer_output_string.decode("iso-8859-9").encode("utf-8"))
+                # sys.exit(1)
     elif args.command == "gui":
 
         from PyQt4 import QtGui
@@ -261,7 +308,8 @@ if __name__ == "__main__":
                 self.plainTextEdit.setPlainText("Ali ata bak")
 
             def calculate_ambiguity(self):
-                single_line_free_text_sentence = str(self.plainTextEdit.toPlainText())
+
+                single_line_free_text_sentence = str(self.plainTextEdit.toPlainText().toUtf8())
                 ambiguity_score, single_lined_morph_analyzes_output, counts = calculate_ambiguity_score_of_a_sentence(single_line_free_text_sentence)
 
                 self.label.setText("%lf" % ambiguity_score)
