@@ -1,4 +1,7 @@
 # coding=utf-8
+
+import os
+
 import tornado.ioloop
 import tornado.web
 
@@ -42,7 +45,7 @@ class DisambiguationHandler(tornado.web.RequestHandler):
         self.add_header("Access-Control-Allow-Origin", "*")
         line = self.get_argument("single_line_sentence", default=u"Dünyaya hoş geldiniz.")
         # print type(line)
-        print(line)
+        print(line.encode("utf8"))
 
         line = line.strip()
         self.write(self.disambiguate_line(line))
@@ -53,6 +56,7 @@ class DisambiguationHandler(tornado.web.RequestHandler):
 def make_app():
     return tornado.web.Application([
         (r"/disambiguate/", DisambiguationHandler),
+        (r"/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.curdir, "./public_html/")})
     ])
 
 
