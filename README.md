@@ -66,3 +66,24 @@ python utils.py --command gui --output_dir stats_train_merge --gold_data 1 --ver
 ```
 
 ![](./public_html/images/morphological-analyzer-desktop-screenshot.png)
+
+# Docker instance
+
+For easier installation, I have created a Dockerfile which can be used to 
+run all functions easily. To use
+
+```bash
+
+docker build -t my_neural_turkish_disambiguator:0.0.1 .
+
+```
+
+Run the following to have a shell where you can run the training,
+prediction, disambiguation and webapp features. 
+You can just use volumes to persist created files. Please see the [releases page](./releases)
+for the model files.
+
+```bash
+docker run -ti -p 10001:10001 -v neural_data_volume:/opt/neural-turkish-disambiguator my_neural_turkish_disambiguator:0.0.1
+
+```

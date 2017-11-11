@@ -27,4 +27,5 @@ COPY models/ntd-nmd-20170619-06.epoch-32-val_acc-0.99507.hdf5.label2ids /opt/neu
 
 EXPOSE 10001
 
-CMD python webapp.py --command disambiguate --train_filepath data/train.merge.utf8 --test_filepath data/test.merge.utf8 --model_path ./models/ntd-nmd-20170619-06.epoch-32-val_acc-0.99507.hdf5 --label2ids_path ./models/ntd-nmd-20170619-06.epoch-32-val_acc-0.99507.hdf5.label2ids --run_name testing --port 10001
+# CMD python webapp.py --command disambiguate --train_filepath data/train.merge.utf8 --test_filepath data/test.merge.utf8 --model_path ./models/ntd-nmd-20170619-06.epoch-32-val_acc-0.99507.hdf5 --label2ids_path ./models/ntd-nmd-20170619-06.epoch-32-val_acc-0.99507.hdf5.label2ids --run_name testing --port 10001
+CMD bash
